@@ -1,4 +1,4 @@
-name: Docker CI
+name: Docker CI/CD
 
 on:
   push:
@@ -6,17 +6,41 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2️⃣ Login to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3️⃣ Build Docker image
       - name: Build Docker image
-        run: |
-          docker build -t nginx-healthcheck .
+        run: docker build -t meysam-farbakhsh/nginx-healthcheck:latest .
 
+      # 4️⃣ Push Docker image to Docker Hub
+      - name: Push Docker image
+        run: docker push meysam-farbakhsh/nginx-healthcheck:latest
 
-
-
+      # 5️⃣ Deploy to server via SSH
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            # Pull latest image
+            docker pull meysam-farbakhsh/nginx-healthcheck:latest
+            # Stop existing container if running
+            docker stop web || true
+            docker rm web || true
+            # Run new container
+            docker run -d --name web -p 80:80 meysam-farbakhsh/nginx-healthcheck:latest
