@@ -2,14 +2,14 @@ version: "3.9"
 
 services:
   web:
-    image: nginx:alpine           # استفاده از Nginx رسمی
+    image: nginx:alpine
     container_name: web
     ports:
-      - "80:80"                   # مپ کردن پورت 80 کانتینر روی پورت 80 هاست
+      - "80:80"
     volumes:
       - ./frontend:/usr/share/nginx/html  # mount کل پوشه frontend
     restart: always
-    healthcheck:                   # بررسی سلامت سرویس وب
+    healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
       interval: 30s
       timeout: 5s
@@ -21,25 +21,25 @@ services:
         condition: service_started
 
   redis:
-    image: redis:7-alpine          # سرویس Redis
+    image: redis:7-alpine
     container_name: redis
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/data           # volume برای ذخیره داده‌ها
+      - redis-data:/data
     restart: always
     command: ["redis-server", "--appendonly", "yes"]
-    healthcheck:                    # بررسی سلامت Redis
+    healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest  # جمع‌آوری متریک کانتینرها
+    image: google/cadvisor:latest  # از image معتبر Docker Hub استفاده شد
     container_name: cadvisor
     ports:
-      - "8080:8080"               # دسترسی به متریک‌ها از پورت 8080
+      - "8080:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -51,7 +51,7 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml  # کانفیگ Prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     depends_on:
@@ -61,11 +61,12 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin  # پسورد پیش‌فرض
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     ports:
-      - "3000:3000"                     # دسترسی به داشبورد Grafana
+      - "3000:3000"
     depends_on:
       - prometheus
 
 volumes:
-  redis-data:                            # volume برای Redis
+  redis-data:
