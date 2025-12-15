@@ -17,6 +17,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      cadvisor:
+        condition: service_started
 
   redis:
     image: redis:7-alpine          # سرویس Redis
@@ -33,5 +35,37 @@ services:
       timeout: 3s
       retries: 5
 
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest  # جمع‌آوری متریک کانتینرها
+    container_name: cadvisor
+    ports:
+      - "8080:8080"               # دسترسی به متریک‌ها از پورت 8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml  # کانفیگ Prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - cadvisor
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin  # پسورد پیش‌فرض
+    ports:
+      - "3000:3000"                     # دسترسی به داشبورد Grafana
+    depends_on:
+      - prometheus
+
 volumes:
-  redis-data:                       # تعریف volume برای Redis
+  redis-data:                            # volume برای Redis
