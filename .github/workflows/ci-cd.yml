@@ -24,7 +24,7 @@ jobs:
 
       # 3. Build Docker images
       - name: Build Docker images
-        run: docker-compose -f docker-compose.yml build
+        run: docker compose -f docker compose.yml build
 
       # 4. Deploy روی سرور از طریق SSH
       - name: Deploy on server via SSH
@@ -36,8 +36,8 @@ jobs:
           script: |
             cd /path/to/your/project
             # توقف کانتینرهای قدیمی
-            docker-compose down
+            docker compose down
             # Pull آخرین کد از گیت (در صورت نیاز)
             git pull origin main
             # Build و run کانتینرها
-            docker-compose up -d --build
+            docker compose up -d --build
