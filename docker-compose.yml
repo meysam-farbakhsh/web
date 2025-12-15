@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  web:
+    image: nginx:alpine           # استفاده از Nginx رسمی
+    container_name: web
+    ports:
+      - "80:80"                   # مپ کردن پورت 80 کانتینر روی پورت 80 هاست
+    volumes:
+      - ./frontend:/usr/share/nginx/html  # mount کل پوشه frontend
+    restart: always
+    healthcheck:                   # بررسی سلامت سرویس وب
+      test: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine          # سرویس Redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data           # volume برای ذخیره داده‌ها
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:                    # بررسی سلامت Redis
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  redis-data:                       # تعریف volume برای Redis
