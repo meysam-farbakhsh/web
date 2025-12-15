@@ -6,37 +6,18 @@ on:
       - main
 
 jobs:
-  lint:
-    name: Sanity Check
+  build-and-test:
+    name: Build & Healthcheck
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Show project files
-        run: ls -la
-  build:
-    name: Build Docker Image
-    runs-on: ubuntu-latest
-    needs: lint
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build image
+      - name: Build Docker image
         run: |
           docker build -t web:test .
-  healthcheck:
-    name: Run & Healthcheck
-    runs-on: ubuntu-latest
-    needs: build
 
-    steps:
       - name: Run container
         run: |
           docker run -d -p 8080:80 --name web_test web:test
@@ -48,4 +29,5 @@ jobs:
 
       - name: Cleanup
         if: always()
-        run: docker rm -f web_test
+        run: |
+          docker rm -f web_test
