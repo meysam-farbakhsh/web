@@ -2,16 +2,70 @@
 <html lang="fa">
 <head>
   <meta charset="UTF-8">
-  <title>Frontend ساده و مدرن</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Camera Capture</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    video, canvas {
+      border-radius: 12px;
+      margin: 10px;
+      width: 320px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #22c55e;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>سلام، Frontend جذاب!</h1>
-    <p>این یک صفحه ساده ولی مدرن است که با Docker سرو می‌شود.</p>
-    <button id="clickBtn">کلیک کن</button>
-  </div>
 
-  <script src="script.js"></script>
+  <video id="video" autoplay></video>
+  <button onclick="takePhoto()">📸 عکس بگیر</button>
+  <canvas id="canvas" style="display:none;"></canvas>
+
+<script>
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+    })
+    .catch(err => {
+      alert("دسترسی به دوربین داده نشد");
+    });
+
+  function takePhoto() {
+    const ctx = canvas.getContext('2d');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
+
+    canvas.toBlob(blob => {
+      const formData = new FormData();
+      formData.append('photo', blob);
+
+      fetch('/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(() => alert('عکس ذخیره شد'))
+      .catch(() => alert('خطا در ارسال عکس'));
+    }, 'image/jpeg');
+  }
+</script>
+
 </body>
 </html>
