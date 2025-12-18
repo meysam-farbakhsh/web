@@ -3,36 +3,38 @@ name: CI/CD Workflow
 on:
   push:
     branches:
-      - main
+      - main  # وقتی push روی branch main انجام شود
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # گرفتن کد پروژه
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Clean merge conflicts & Deploy via SSH
+      # اتصال SSH و deploy
+      - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          host: ${{ secrets.SERVER_IP }}       # آی‌پی سرور
+          username: ${{ secrets.SERVER_USER }} # نام کاربری روی سرور
+          key: ${{ secrets.SERVER_SSH_KEY }}   # private key SSH
           script: |
-            # ساخت فولدر پروژه و frontend در صورت عدم وجود
+            # ساخت فولدر پروژه و frontend اگر وجود نداشته باشد
             mkdir -p /root/web
             mkdir -p /root/web/frontend
 
-            # پاک کردن markers merge conflict از فایل‌های اصلی قبل از deploy
+            # پاک کردن merge conflict markers از فایل‌های مهم
             find . -type f -name "Dockerfile" -o -name "docker-compose.yml" | while read file; do
               sed -i '/^<<<<<<<\|^=======\|^>>>>>>> /d' "$file"
             done
 
-            # کپی تمام فایل‌ها از repo روی سرور
+            # انتقال تمام فایل‌ها از repo روی سرور
             rsync -avz --delete ./ /root/web/
 
-            # ورود به مسیر پروژه
+            # رفتن به مسیر پروژه
             cd /root/web
 
             # اجرای Docker Compose
