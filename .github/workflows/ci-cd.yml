@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Deploy
 
 on:
   push:
@@ -6,28 +6,22 @@ on:
       - main
 
 jobs:
-  build-and-test:
-    name: Build & Healthcheck
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Build Docker image
-        run: |
-          docker build -t web:test .
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Run container
+      - name: Copy files to server
         run: |
-          docker run -d -p 8080:80 --name web_test web:test
-          sleep 5
+          rsync -avz --delete ./ ubuntu@YOUR_SERVER_IP:/home/ubuntu/web/
 
-      - name: Healthcheck
+      - name: Deploy with Docker Compose
         run: |
-          curl -f http://localhost:8080
-
-      - name: Cleanup
-        if: always()
-        run: |
-          docker rm -f web_test
+          ssh ubuntu@YOUR_SERVER_IP "cd /home/ubuntu/web && docker compose down && docker compose up -d --build"
