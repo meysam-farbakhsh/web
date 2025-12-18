@@ -10,23 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    # 1. Checkout کد از مخزن
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup SSH agent
+    # 2. Load کردن کلید SSH
+    - name: Setup SSH
       uses: webfactory/ssh-agent@v0.9.0
       with:
-        # secret name که گفتی "web" هست
-        ssh-private-key: ${{ secrets.web }}
+        ssh-private-key: ${{ secrets.WEB }}
 
+    # 3. اتصال SSH و اجرای دستورها روی سرور
     - name: Deploy to server
       uses: appleboy/ssh-action@v0.1.8
       with:
-        host: 46.34.165.222      # IP سرور
-        username: root           # یوزر SSH
-        password: ${{ secrets.web }}  # همون secret
+        host: 46.34.165.222
+        username: root
+        key: ${{ secrets.WEB }}
         port: 22
         script: |
           cd /root/web
+          git reset --hard
+          git pull origin main
           docker compose down -v
           docker compose up -d --build
