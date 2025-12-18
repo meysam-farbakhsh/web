@@ -1,27 +1,31 @@
-name: Deploy Web
+name: CI/CD Push Workflow
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  push-changes:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: SSH to server and deploy
-        uses: appleboy/ssh-action@v0.1.8
-        with:
-          host: 46.34.165.222      # آی‌پی سرور
-          username: root           # یوزر
-          password: P@$$w0rd       # پسورد (می‌تونی secret هم بذاری)
-          port: 22
-          script: |
-            cd /root/web
-            git pull origin main
-            docker compose down -v
-            docker compose up -d --build
+    - name: Set up Git
+      run: |
+        git config --global user.name "meysam-farbakhsh"
+        git config --global user.email "meysam@farbakhsh.ir"
+
+    - name: Make changes (example)
+      run: |
+        # اینجا میتونی تغییرات خودتو اعمال کنی
+        echo "Updated at $(date)" >> frontend/index.html
+
+    - name: Commit and Push
+      run: |
+        git add .
+        git commit -m "Update from workflow" || echo "No changes to commit"
+        git push https://x-access-token:${{ secrets.WEB_TOKEN }}@github.com/meysam-farbakhsh/web.git main
