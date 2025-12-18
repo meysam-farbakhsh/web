@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 version: "3.9"
 
+=======
+>>>>>>> 7c3dee7 (new)
 services:
   web:
     image: nginx:alpine
@@ -17,8 +20,11 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+<<<<<<< HEAD
       cadvisor:
         condition: service_started
+=======
+>>>>>>> 7c3dee7 (new)
 
   redis:
     image: redis:7-alpine
