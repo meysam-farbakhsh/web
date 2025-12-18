@@ -1,30 +1,33 @@
-name: CI/CD Deploy to Server
+name: CI-CD Deploy
 
 on:
   push:
     branches:
-      - main
+      - main  # وقتی push روی main انجام شد اجرا بشه
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    # 1️⃣ Checkout repository
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Setup SSH key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_KEY }}  # secret شامل private key شماست
+    # 2️⃣ Setup SSH agent
+    - name: Setup SSH key
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v0.1.8
-        with:
-          host: ${{ secrets.SERVER_IP }}          # آی‌پی سرور
-          username: ${{ secrets.SERVER_USER }}    # نام کاربری سرور
-          port: 22
-          script: |
-            cd /home/ubuntu/web                   # مسیر پروژه روی سرور
-            docker compose down
-            docker compose up -d --build
+    # 3️⃣ Deploy to server
+    - name: Deploy to server
+      run: |
+        ssh -o StrictHostKeyChecking=no root@46.34.165.222 "
+          cd /root/web &&
+          git reset --hard &&
+          git clean -fd &&
+          git pull origin main &&
+          docker compose down -v &&
+          docker compose up -d --build
+        "
