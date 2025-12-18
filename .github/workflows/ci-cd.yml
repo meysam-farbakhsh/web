@@ -1,4 +1,4 @@
-name: CI/CD Deploy
+name: Deploy Web
 
 on:
   push:
@@ -10,27 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Checkout کد از مخزن
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    # 2. Load کردن کلید SSH
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ secrets.WEB }}
-
-    # 3. اتصال SSH و اجرای دستورها روی سرور
-    - name: Deploy to server
-      uses: appleboy/ssh-action@v0.1.8
-      with:
-        host: 46.34.165.222
-        username: root
-        key: ${{ secrets.WEB }}
-        port: 22
-        script: |
-          cd /root/web
-          git reset --hard
-          git pull origin main
-          docker compose down -v
-          docker compose up -d --build
+      - name: SSH to server and deploy
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: 46.34.165.222      # آی‌پی سرور
+          username: root           # یوزر
+          password: P@$$w0rd       # پسورد (می‌تونی secret هم بذاری)
+          port: 22
+          script: |
+            cd /root/web
+            git pull origin main
+            docker compose down -v
+            docker compose up -d --build
