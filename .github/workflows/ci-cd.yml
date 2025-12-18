@@ -13,14 +13,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}  # secret شامل private key شماست
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.8
         with:
-          host: ${{ secrets.SERVER_IP }}         # آی‌پی سرور
-          username: ${{ secrets.SERVER_USER }}  # نام کاربری سرور
-          password: ${{ secrets.WEB }}          # پسورد از secret
-          port: 22                               # پورت SSH، معمولاً 22
+          host: ${{ secrets.SERVER_IP }}          # آی‌پی سرور
+          username: ${{ secrets.SERVER_USER }}    # نام کاربری سرور
+          port: 22
           script: |
-            cd /home/ubuntu/web                  # مسیر پروژه روی سرور
+            cd /home/ubuntu/web                   # مسیر پروژه روی سرور
             docker compose down
             docker compose up -d --build
